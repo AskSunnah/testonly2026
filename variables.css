@@ -1,0 +1,26 @@
+/* variable.css */
+/* ICONS & BORDERS*/
+:root {
+  --icon-color: #adadad;
+  --border-color: #f3f0e2;
+  /* BUTTONS*/
+  --button-gradient: linear-gradient(135deg, #fff1b7, #bea331);
+  --button-bg-transparent: #faf9f5;
+  --button-text-color: #3d3300;
+  --button-hover: linear-gradient(135deg, #fce490, #a88c1e);
+  /* BACKGROUNDS */
+  --bg-main: #faf9f5;
+  --bg-secondary: #fcf7e296;
+  /* --bg-color-header: #d5af28; */
+  --bg-color-header: #c3a421;
+  --bg-light: #efead8ad;
+  --bg-tertiary: #aaa9a8;
+  --bg-muted: #92928f;
+  --bg-lib-header: rgba(213, 175, 40, 0.9);
+  /* TEXT COLORS */
+  --text-main: #323232;
+  --text-accent: #8a782e;
+  --text-secondary: #707070;
+  --text-tertiary: #989898;
+  --font-family: "Segoe UI", sans-serif;
+}

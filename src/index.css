@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+:root {
+  --icon-color: #adadad;
+  --border-color: #f3f0e2;
+  --button-gradient: linear-gradient(135deg, #fff1b7, #bea331);
+  --button-bg-transparent: #faf9f5;
+  --button-text-color: #3d3300;
+  --button-hover: linear-gradient(135deg, #fce490, #a88c1e);
+  --bg-main: #faf9f5;
+  --bg-secondary: #fcf7e296;
+  --bg-color-header: #c3a421;
+  --bg-light: #efead8ad;
+  --bg-tertiary: #aaa9a8;
+  --bg-muted: #92928f;
+  --bg-lib-header: rgba(213, 175, 40, 0.9);
+  --text-main: #323232;
+  --text-accent: #8a782e;
+  --text-secondary: #707070;
+  --text-tertiary: #989898;
+  --font-family: "Segoe UI", sans-serif;
+  --page-background: #f7f7f7;
+}
+
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--page-background);
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+@theme {
+  --color-brand:       #c3a421;
+  --color-brand-light: #d5b940;
+  --color-brand-dark:  #a67f0f;
+  --color-bg-main:     #faf9f5;
+  --color-bg-secondary:#fcf7e2;
+  --color-bg-light:    #efead8;
+  --color-text-main:   #323232;
+  --color-text-accent: #8a782e;
+  --color-text-muted:  #707070;
+}
+
+.lib-button { color: var(--button-text-color); background: var(--button-gradient); border: none; }
+.lib-button:hover { background: var(--button-bg-transparent); border: 1px solid var(--button-gradient); color: var(--text-main); }
+.nav-link {
+  color: var(--text-main);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+  display: inline-block;
+}
+.nav-link:hover,
+.nav-link:focus {
+  background: var(--button-gradient);
+  color: var(--text-main);
+}
