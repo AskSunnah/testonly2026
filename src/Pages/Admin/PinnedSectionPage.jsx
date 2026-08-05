@@ -363,41 +363,82 @@ function SectionForm({ editingSection, onBack, onSaved, token }) {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState({ text: "", ok: true });
 
-  useEffect(() => {
-    if (!editingSection) {
-      setForm(emptyForm);
-      setQuestions([]);
-      return;
-    }
-    const matched = PRESETS.en.find((p) => p.value === editingSection.type);
-    setForm({
-      lang: editingSection.lang,
-      en: {
-        preset: matched ? editingSection.type : "custom",
-        customTitle: !matched ? editingSection.title?.en || "" : "",
-      },
-      ar: {
-        preset: matched ? editingSection.type : "custom",
-        customTitle: !matched ? editingSection.title?.ar || "" : "",
-      },
-      expiryEnabled: !!editingSection.expiresAt,
-      expiresAt: editingSection.expiresAt
-        ? new Date(editingSection.expiresAt).toISOString().slice(0, 16)
-        : "",
-    });
-    // Existing sections saved before this change won't have `heading` on
-    // their question entries yet — fall back to the slug so the list still
-    // renders something sensible until the admin re-saves via the picker.
-    setQuestions(
-      (editingSection.questions || []).map((q) => ({
-        ...q,
-        heading: q.heading || q.slug,
-      }))
-    );
-  }, [editingSection]);
+  // useEffect(() => {
+  //   if (!editingSection) {
+  //     setForm(emptyForm);
+  //     setQuestions([]);
+  //     return;
+  //   }
+  //   const matched = PRESETS.en.find((p) => p.value === editingSection.type);
+  //   setForm({
+  //     lang: editingSection.lang,
+  //     en: {
+  //       preset: matched ? editingSection.type : "custom",
+  //       customTitle: !matched ? editingSection.title?.en || "" : "",
+  //     },
+  //     ar: {
+  //       preset: matched ? editingSection.type : "custom",
+  //       customTitle: !matched ? editingSection.title?.ar || "" : "",
+  //     },
+  //     expiryEnabled: !!editingSection.expiresAt,
+  //     expiresAt: editingSection.expiresAt
+  //       ? new Date(editingSection.expiresAt).toISOString().slice(0, 16)
+  //       : "",
+  //   });
+  //   // Existing sections saved before this change won't have `heading` on
+  //   // their question entries yet — fall back to the slug so the list still
+  //   // renders something sensible until the admin re-saves via the picker.
+  //   setQuestions(
+  //     (editingSection.questions || []).map((q) => ({
+  //       ...q,
+  //       heading: q.heading || q.slug,
+  //     }))
+  //   );
+  // }, [editingSection]);
 
   // Resolve the actual title text for a language: preset label if a
   // preset pill is selected, or the typed custom text if "Other" is picked.
+  
+  
+useEffect(() => {
+  if (!editingSection) {
+    setForm(emptyForm);
+    setQuestions([]);
+    return;
+  }
+
+  const savedType = editingSection.type || {};
+
+  const buildLangState = (langKey) => {
+    const typeValue = savedType[langKey] || "custom";
+    const isRealPreset =
+      typeValue !== "custom" &&
+      PRESETS[langKey].some((p) => p.value === typeValue);
+
+    return {
+      preset: isRealPreset ? typeValue : "custom",
+      customTitle: isRealPreset ? "" : editingSection.title?.[langKey] || "",
+    };
+  };
+
+  setForm({
+    lang: editingSection.lang,
+    en: buildLangState("en"),
+    ar: buildLangState("ar"),
+    expiryEnabled: !!editingSection.expiresAt,
+    expiresAt: editingSection.expiresAt
+      ? new Date(editingSection.expiresAt).toISOString().slice(0, 16)
+      : "",
+  });
+
+  setQuestions(
+    (editingSection.questions || []).map((q) => ({
+      ...q,
+      heading: q.heading || q.slug,
+    }))
+  );
+}, [editingSection]);
+
   const resolveTitle = (langKey) => {
     const { preset, customTitle } = form[langKey];
     if (preset === "custom") return customTitle.trim();
@@ -432,23 +473,17 @@ function SectionForm({ editingSection, onBack, onSaved, token }) {
     setMsg({ text: "", ok: true });
 
     try {
+  
       const body = {
-        // Only persist the title(s) that are actually in scope for this
-        // section's language. We previously mirrored whichever title was
-        // filled into both en/ar slots — that's what caused single-language
-        // sections to display both an English and an Arabic title in the
-        // admin list. Now an "en"-only or "ar"-only section stores just
-        // that one field; the unused slot is left empty.
-        title: {
-          en: needsEn ? resolvedTitleEn : "",
-          ar: needsAr ? resolvedTitleAr : "",
-        },
-        type: needsEn ? form.en.preset : form.ar.preset,
-        lang: form.lang,
-        questions,
-        expiresAt: form.expiryEnabled && form.expiresAt ? form.expiresAt : null,
-      };
-
+  title: {
+    en: needsEn ? resolvedTitleEn : "",
+    ar: needsAr ? resolvedTitleAr : "",
+  },
+  type: { en: form.en.preset, ar: form.ar.preset },
+  lang: form.lang,
+  questions,
+  expiresAt: form.expiryEnabled && form.expiresAt ? form.expiresAt : null,
+};
       const isEdit = !!editingSection;
       const url = isEdit
         ? `${API_BASE}/api/admin/pinned/${editingSection._id}`
