@@ -175,7 +175,10 @@ export default function AllBooks({ lang = "en" }) {
         `${API_BASE}/api/books/admin/${bookId}/download`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+         headers: {
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${localStorage.getItem("adminToken") || ""}`,
+},
           body: JSON.stringify({ driveLink }),
         },
       );

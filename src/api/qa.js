@@ -1,5 +1,9 @@
 import { API_BASE } from "../../config";
 
+const authHeaders = () => ({
+  Authorization: `Bearer ${localStorage.getItem("adminToken") || ""}`,
+});
+
 // Submit a linked answer (from a user question)
 export async function submitQA(data, lang = "en") {
   const endpoint =
@@ -9,7 +13,10 @@ export async function submitQA(data, lang = "en") {
 
   const res = await fetch(endpoint, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+  "Content-Type": "application/json",
+  ...authHeaders(),
+},
     body: JSON.stringify(data),
   });
 
@@ -25,7 +32,10 @@ export async function submitQA(data, lang = "en") {
 export async function submitStandaloneQA(data) {
   const res = await fetch(`${API_BASE}/api/admin/submit_standalone`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+  "Content-Type": "application/json",
+  ...authHeaders(),
+},
     body: JSON.stringify(data),
   });
 
@@ -46,7 +56,10 @@ export async function editQA(data, slug, lang = "en") {
 
   const res = await fetch(endpoint, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+  "Content-Type": "application/json",
+  ...authHeaders(),
+},
     body: JSON.stringify(data),
   });
 
@@ -81,7 +94,10 @@ export async function deleteQuestion(lang, slug) {
     lang === "ar"
       ? `${API_BASE}/api/admin/delete_ar/${slug}`
       : `${API_BASE}/api/admin/delete/${slug}`;
-  const res = await fetch(url, { method: "DELETE" });
+  const res = await fetch(url, {
+  method: "DELETE",
+  headers: authHeaders(),
+});
   const data = await res.json();
   if (!res.ok || !data.success)
     throw new Error(data.message || "Failed to delete!");
