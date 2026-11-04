@@ -1,5 +1,9 @@
 import { API_BASE } from "../../config";
 
+const authHeaders = () => ({
+  Authorization: `Bearer ${localStorage.getItem("adminToken") || ""}`,
+});
+
 export async function getQACategories(
   lang = "en",
   includeInactive = false,
@@ -9,7 +13,9 @@ export async function getQACategories(
     `${API_BASE}/api/admin/qa-categories` +
     `?lang=${lang}&includeInactive=${includeInactive}&tree=${tree}`;
 
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    headers: authHeaders(),
+  });
   const data = await res.json();
 
   if (!res.ok || !data.success) {
@@ -22,7 +28,10 @@ export async function getQACategories(
 export async function createQACategory(payload) {
   const res = await fetch(`${API_BASE}/api/admin/qa-categories`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
+    },
     body: JSON.stringify({
       name: payload.name,
       lang: payload.lang,
@@ -43,7 +52,10 @@ export async function createQACategory(payload) {
 export async function updateQACategory(id, payload) {
   const res = await fetch(`${API_BASE}/api/admin/qa-categories/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
+    },
     body: JSON.stringify({
       name: payload.name,
       parent: payload.parent || null,
@@ -64,6 +76,7 @@ export async function updateQACategory(id, payload) {
 export async function toggleQACategory(id) {
   const res = await fetch(`${API_BASE}/api/admin/qa-categories/${id}/toggle`, {
     method: "PATCH",
+    headers: authHeaders(),
   });
 
   const data = await res.json();
@@ -77,6 +90,9 @@ export async function toggleQACategory(id) {
 export async function getQuestionsForCategory(categoryId) {
   const res = await fetch(
     `${API_BASE}/api/admin/qa-categories/${categoryId}/questions`,
+    {
+      headers: authHeaders(),
+    }
   );
 
   const data = await res.json();
@@ -93,7 +109,10 @@ export async function updateQuestionsForCategory(categoryId, questionIds) {
     `${API_BASE}/api/admin/qa-categories/${categoryId}/questions`,
     {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(),
+      },
       body: JSON.stringify({ questionIds }),
     },
   );
@@ -109,6 +128,7 @@ export async function updateQuestionsForCategory(categoryId, questionIds) {
 export async function deleteQACategory(id) {
   const res = await fetch(`${API_BASE}/api/admin/qa-categories/${id}/delete`, {
     method: "DELETE",
+    headers: authHeaders(),
   });
 
   const data = await res.json();

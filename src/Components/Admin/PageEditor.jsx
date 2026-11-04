@@ -55,7 +55,10 @@ export default function PageEditor({
     const res = await fetch(`${API_BASE}/api/books/admin/${bookId}/audio`, 
  {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${localStorage.getItem("adminToken") || ""}`,
+},
       body: JSON.stringify({
         pageNumber: page.number,
         audioLink: page.audioUrl,

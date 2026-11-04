@@ -125,7 +125,11 @@ export default function AdminDashboard() {
     setLoading(true);
     setLoadError(false);
 
-    fetch(`${API_BASE}/api/admin/stats`)
+    const token = localStorage.getItem("adminToken");
+
+    fetch(`${API_BASE}/api/admin/stats`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
       .then((res) => {
         if (!res.ok) throw new Error("Failed");
         return res.json();

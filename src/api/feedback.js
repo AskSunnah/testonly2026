@@ -3,14 +3,17 @@ import { API_BASE } from "../../config";
 export async function getAllFeedback(lang = "en") {
   try {
     const res = await fetch(`${API_BASE}/api/feedback?lang=${lang}`, {
-  method: "GET",
-});
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("adminToken") || ""}`,
+      },
+    });
 
     if (!res.ok) {
       throw new Error("Failed to fetch feedback");
     }
 
-    return await res.json();   // returns { success, feedbacks }
+    return await res.json(); // returns { success, feedbacks }
   } catch (err) {
     console.error("Fetch Feedback Error:", err);
     throw err;

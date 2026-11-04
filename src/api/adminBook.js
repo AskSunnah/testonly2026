@@ -1,10 +1,16 @@
 // api calls for admin book management
 import { API_BASE } from "../../config";
+const authHeaders = () => ({
+  Authorization: `Bearer ${localStorage.getItem("adminToken") || ""}`,
+});
 
 export async function submitBook(bookData) {
   const res = await fetch(`${API_BASE}/api/books`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+  "Content-Type": "application/json",
+  ...authHeaders(),
+},
     body: JSON.stringify(bookData),
   });
   const data = await res.json();
@@ -49,6 +55,7 @@ export async function deleteBookAdmin(lang, slug) {
 
   const res = await fetch(endpoint, {
     method: "DELETE",
+    headers: authHeaders(),
   });
   const data = await res.json();
   if (!res.ok || !data.success) {
@@ -75,7 +82,10 @@ export async function saveBookAdmin(lang, slug, bookData) {
 
   const res = await fetch(endpoint, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+  "Content-Type": "application/json",
+  ...authHeaders(),
+},
     body: JSON.stringify(bookData),
   });
   const data = await res.json();
@@ -91,7 +101,10 @@ export async function reorderBooksAdmin(lang, bookId, newOrder) {
 
   const res = await fetch(endpoint, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+  "Content-Type": "application/json",
+  ...authHeaders(),
+},
     body: JSON.stringify({
       language: lang,
       bookId,
@@ -124,7 +137,10 @@ export async function fetchAuthors(lang = "en") {
 export async function createAuthor(authorData) {
   const res = await fetch(`${API_BASE}/api/authors`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+  "Content-Type": "application/json",
+  ...authHeaders(),
+},
     body: JSON.stringify(authorData),
   });
 
@@ -140,7 +156,10 @@ export async function createAuthor(authorData) {
 export async function updateAuthor(authorId, authorData) {
   const res = await fetch(`${API_BASE}/api/authors/${authorId}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+  "Content-Type": "application/json",
+  ...authHeaders(),
+},
     body: JSON.stringify(authorData),
   });
 
@@ -170,7 +189,10 @@ export async function fetchAuthorBooks(authorId) {
 export async function reassignBookAuthor(lang, slug, newAuthorId) {
   const res = await fetch(`${API_BASE}/api/books/${lang}/${slug}/author`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+  "Content-Type": "application/json",
+  ...authHeaders(),
+},
     body: JSON.stringify({
       authorId: newAuthorId || null,
       lang, // ← this is what the controller now reads
@@ -194,7 +216,10 @@ export async function reassignBookAuthor(lang, slug, newAuthorId) {
 export async function deleteAuthor(authorId, reassignments = []) {
   const res = await fetch(`${API_BASE}/api/authors/${authorId}`, {
     method: "DELETE",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+  "Content-Type": "application/json",
+  ...authHeaders(),
+},
     body: JSON.stringify({ reassignments }),
   });
 
