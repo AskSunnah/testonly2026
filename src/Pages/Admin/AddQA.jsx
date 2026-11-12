@@ -665,13 +665,13 @@ export default function AddQA() {
     if (urlQ) {
       setForm((p) => ({
         ...p,
-        question: decodeURIComponent(urlQ).trim(),
+        question: urlQ.trim(),
         language: urlLangParam || "en",
       }));
     }
 
     if (urlN) {
-      setMessage(`Answering question from: ${decodeURIComponent(urlN)}`);
+      setMessage(`Answering question from: ${urlN}`);
     }
   }, [isEdit, searchParams]);
 
