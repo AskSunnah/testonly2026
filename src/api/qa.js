@@ -103,3 +103,15 @@ export async function deleteQuestion(lang, slug) {
     throw new Error(data.message || "Failed to delete!");
   return true;
 }
+
+export async function getQAPage({ lang = "en", skip = 0, limit = 20, search = "" } = {}) {
+  const params = new URLSearchParams({ lang, skip, limit });
+  if (search) params.set("search", search);
+
+  const res = await fetch(`${API_BASE}/api/admin/qa-list?${params.toString()}`, {
+    headers: authHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to load questions.");
+  return data; // { items, total, counts: { en, ar } }
+}

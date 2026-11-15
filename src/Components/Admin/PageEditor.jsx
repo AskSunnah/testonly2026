@@ -92,7 +92,10 @@ export default function PageEditor({
   };
 
   return (
-    <div className="border border-[#ccc] rounded-lg p-4 mb-4 bg-[#fafafa] ml-8">
+    <div
+  id={`page-${page.number}`}
+  className="border border-[#ccc] rounded-lg p-4 mb-4 bg-[#fafafa] ml-8 transition-shadow"
+>
       {/* Page Number */}
       <label className="block mb-3">
         <span className="block text-sm font-semibold mb-1">Page #</span>

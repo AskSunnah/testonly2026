@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
+import { updateReportStatus } from "../../api/adminReports";
 import {
   submitQA,
   submitStandaloneQA,
@@ -11,6 +12,7 @@ import { getQACategories, createQACategory } from "../../api/qaCategories";
 import AdminLayout from "../../Components/Admin/AdminLayout";
 import PreviewModal from "../../Components/Admin/PreviewModal";
 import { RxCross2 } from "react-icons/rx";
+import ReportedTextBanner from "../../Components/Admin/ReportedTextBanner";
 
 const sectionOptions = [
   { value: "quran", label: "From Quran" },
@@ -525,6 +527,11 @@ export default function AddQA() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  const location = useLocation();
+const reportedText = location.state?.reportedText;
+const reportId = location.state?.reportId;
+const jumpedRef = useRef(false);
+
   const isEdit = searchParams.get("edit") === "1";
   const editSlug = searchParams.get("slug");
   const editLang = searchParams.get("lang");
@@ -650,6 +657,33 @@ export default function AddQA() {
         });
     }
   }, [isEdit, editSlug, editLang]);
+
+  const titleLoaded = !!form.title;
+
+useEffect(() => {
+  if (!isEdit || !reportedText || loading || !titleLoaded || jumpedRef.current) return;
+
+  const timer = setTimeout(() => {
+    jumpedRef.current = true;
+    const needle = reportedText.trim();
+    const probes = [needle, needle.slice(0, 40)]; // exact match, then first 40 chars
+    const fields = document.querySelectorAll("form textarea, form input[type='text']");
+
+    for (const probe of probes) {
+      if (!probe) continue;
+      for (const el of fields) {
+        const idx = el.value.indexOf(probe);
+        if (idx === -1) continue;
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.focus({ preventScroll: true });
+        el.setSelectionRange(idx, idx + probe.length);
+        return;
+      }
+    }
+  }, 300);
+
+  return () => clearTimeout(timer);
+}, [isEdit, reportedText, loading, titleLoaded]);
 
   // Pre-fill from URL params when coming from UserQuestions
   useEffect(() => {
@@ -941,6 +975,8 @@ export default function AddQA() {
         <h2 className="text-center text-[var(--bg-color-header)] text-[2rem] mb-2 font-[Montserrat,Arial,sans-serif]">
           {pageTitle}
         </h2>
+
+        {isEdit && <ReportedTextBanner lang={editLang} />}
 
         {/* Mode banner */}
         {!isEdit && (

@@ -11,6 +11,9 @@ import BookEditor from "../../Components/Admin/BookEditor";
 import AdminLayout from "../../Components/Admin/AdminLayout";
 import AuthorManager from "../../Components/Admin/AuthorManagement";
 import BookPreview from "../../Components/Admin/BookPreview";
+import {useSearchParams } from "react-router-dom";
+import ReportedTextBanner from "../../Components/Admin/ReportedTextBanner";
+
 
 const CATEGORIES = [
   { value: "", label: "-- Select Category --" },
@@ -27,10 +30,12 @@ const LANGS = [
 
 export default function EditBook() {
   const { lang, slug } = useParams();
-
+const [searchParams] = useSearchParams();
+const reportedPage = searchParams.get("page");
   const [book, setBook] = useState(null);
   const [authors, setAuthors] = useState([]);
   const [modal, setModal] = useState({ show: false, title: "", message: "" });
+  
 
   useEffect(() => {
     fetchBookAdmin(lang, slug)
@@ -44,6 +49,24 @@ export default function EditBook() {
         setModal({ show: true, title: "Error", message: err.message }),
       );
   }, [lang, slug]);
+
+  const bookLoaded = !!book;
+
+useEffect(() => {
+  if (!bookLoaded || !reportedPage) return;
+
+  const highlight = ["ring-4", "ring-amber-400"];
+  const timer = setTimeout(() => {
+    const el = document.getElementById(`page-${reportedPage}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add(...highlight);
+    setTimeout(() => el.classList.remove(...highlight), 4000);
+  }, 300);
+
+  return () => clearTimeout(timer);
+}, [bookLoaded, reportedPage]);
+
 
   useEffect(() => {
     if (!book?.language) return;
@@ -186,6 +209,7 @@ export default function EditBook() {
         <h1 className="text-[2rem] mb-6 text-center text-[var(--bg-color-header)]">
           Edit Book
         </h1>
+        <ReportedTextBanner lang={lang} pageNumber={reportedPage} />
 
         <form
           onSubmit={handleSave}
