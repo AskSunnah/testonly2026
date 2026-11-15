@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo ,useRef} from "react";
 import { useNavigate } from "react-router-dom";
-import { getAllQuestions, deleteQuestion } from "../../api/qa";
+import { getAllQuestions, deleteQuestion, getQAPage } from "../../api/qa";
 import ConfirmationModal from "../../Components/ConfirmationModal";
 import AdminLayout from "../../Components/Admin/AdminLayout";
 import {
@@ -12,6 +12,7 @@ import {
   AlertCircle,
   FileText,
 } from "lucide-react";
+
 
 export default function AllQA() {
   const [englishQuestions, setEnglishQuestions] = useState([]);
@@ -25,29 +26,80 @@ export default function AllQA() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalAction, setModalAction] = useState(null);
   const [modalMessage, setModalMessage] = useState("");
+  const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    let isMounted = true;
-    setLoading(true);
+  const [items, setItems] = useState([]);
+const [total, setTotal] = useState(0);
+const [counts, setCounts] = useState({ en: 0, ar: 0 });
+const [loadingMore, setLoadingMore] = useState(false);
+const [debouncedSearch, setDebouncedSearch] = useState("");
+const reqId = useRef(0);
 
-    Promise.all([getAllQuestions("en"), getAllQuestions("ar")])
-      .then(([eng, ar]) => {
-        if (isMounted) {
-          setEnglishQuestions(eng.slice().reverse());
-          setArabicQuestions(ar.slice().reverse());
-        }
-      })
-      .catch(() => {
-        if (isMounted) setMsg("Failed to load questions.");
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
+  const PAGE_SIZE = 20;
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  // useEffect(() => {
+  //   let isMounted = true;
+  //   setLoading(true);
+
+  //   Promise.all([getAllQuestions("en"), getAllQuestions("ar")])
+  //     .then(([eng, ar]) => {
+  //       if (isMounted) {
+  //         setEnglishQuestions(eng.slice().reverse());
+  //         setArabicQuestions(ar.slice().reverse());
+  //       }
+  //     })
+  //     .catch(() => {
+  //       if (isMounted) setMsg("Failed to load questions.");
+  //     })
+  //     .finally(() => {
+  //       if (isMounted) setLoading(false);
+  //     });
+
+  //   return () => {
+  //     isMounted = false;
+  //   };
+  // }, []);
+
+
+  // wait 350ms after typing stops before searching
+useEffect(() => {
+  const t = setTimeout(() => setDebouncedSearch(search.trim()), 350);
+  return () => clearTimeout(t);
+}, [search]);
+
+const fetchItems = async (append) => {
+  const id = ++reqId.current; // ignore out-of-date responses
+  append ? setLoadingMore(true) : setLoading(true);
+  try {
+    const data = await getQAPage({
+      lang: langFilter,
+      skip: append ? items.length : 0,
+      limit: PAGE_SIZE,
+      search: debouncedSearch,
+    });
+    if (id !== reqId.current) return;
+    setItems((prev) => (append ? [...prev, ...data.items] : data.items));
+    setTotal(data.total);
+    setCounts(data.counts);
+  } catch {
+    if (id === reqId.current) setMsg("Failed to load questions.");
+  } finally {
+    if (id === reqId.current) {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }
+};
+
+// first page again whenever the tab or search changes
+useEffect(() => {
+  fetchItems(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [langFilter, debouncedSearch]);
+
+//   useEffect(() => {
+//   setPage(1);
+// }, [search, langFilter]);
 
   const showConfirm = (message, action) => {
     setModalMessage(message);
@@ -62,10 +114,9 @@ export default function AllQA() {
         try {
           await deleteQuestion(lang, slug);
           setMsg("Deleted successfully.");
-          if (lang === "en")
-            setEnglishQuestions((prev) => prev.filter((q) => q.slug !== slug));
-          else
-            setArabicQuestions((prev) => prev.filter((q) => q.slug !== slug));
+          setItems((prev) => prev.filter((q) => !(q.slug === slug && q._lang === lang)));
+setTotal((t) => Math.max(0, t - 1));
+setCounts((c) => ({ ...c, [lang]: Math.max(0, c[lang] - 1) }));
         } catch (e) {
           setMsg(e.message || "Delete failed.");
         }
@@ -77,31 +128,18 @@ export default function AllQA() {
     navigate(`/add-qa?edit=1&lang=${lang}&slug=${slug}`);
   };
 
-  const term = search.trim().toLowerCase();
-  const filteredEnglish = useMemo(
-    () =>
-      term
-        ? englishQuestions.filter((q) =>
-            q.heading?.toLowerCase().includes(term),
-          )
-        : englishQuestions,
-    [englishQuestions, term],
-  );
-  const filteredArabic = useMemo(
-    () =>
-      term
-        ? arabicQuestions.filter((q) => q.heading?.toLowerCase().includes(term))
-        : arabicQuestions,
-    [arabicQuestions, term],
-  );
 
-  const filteredBoth = useMemo(
-    () => [
-      ...filteredEnglish.map((q) => ({ ...q, _lang: "en" })),
-      ...filteredArabic.map((q) => ({ ...q, _lang: "ar" })),
-    ],
-    [filteredEnglish, filteredArabic],
-  );
+  // const activeItems =
+  // langFilter === "all"
+  //   ? filteredBoth
+  //   : langFilter === "en"
+  //     ? filteredEnglish
+  //     : filteredArabic;
+
+// const totalPages = Math.max(1, Math.ceil(activeItems.length / PAGE_SIZE));
+// const safePage = Math.min(page, totalPages);
+// const offset = (safePage - 1) * PAGE_SIZE;
+// const pageItems = activeItems.slice(offset, offset + PAGE_SIZE);
 
   const QACard = ({ q, index, lang, viewUrl, qLabel, showLangBadge }) => (
     <div
@@ -199,7 +237,7 @@ export default function AllQA() {
           <div className="text-center py-12 px-6 text-slate-500 bg-slate-50 rounded-xl border border-slate-200">
             <AlertCircle size={32} className="mx-auto mb-3 text-slate-400" />
             <p className="m-0 font-medium">
-              {term ? "No matching Q&As found." : "No questions found."}
+             {debouncedSearch ? "No matching Q&As found." : "No questions found."}
             </p>
           </div>
         ) : (
@@ -271,7 +309,7 @@ export default function AllQA() {
           >
             Both
             <span className="bg-slate-300 text-slate-700 text-[0.72rem] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-              {englishQuestions.length + arabicQuestions.length}
+              {counts.en + counts.ar}
             </span>
           </button>
           <button
@@ -284,7 +322,7 @@ export default function AllQA() {
           >
             English
             <span className="bg-slate-300 text-slate-700 text-[0.72rem] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-              {englishQuestions.length}
+             {counts.en}
             </span>
           </button>
           <button
@@ -297,7 +335,7 @@ export default function AllQA() {
           >
             العربية
             <span className="bg-slate-300 text-slate-700 text-[0.72rem] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-              {arabicQuestions.length}
+              {counts.ar}
             </span>
           </button>
         </div>
@@ -324,16 +362,29 @@ export default function AllQA() {
             </button>
           )}
         </div>
+<SectionBlock
+  items={items}
+  lang={langFilter === "all" ? undefined : langFilter}
+  qLabel={langFilter === "ar" ? "س" : "Q"}
+  showLangBadge={langFilter === "all"}
+/>
 
-        {langFilter === "all" && (
-          <SectionBlock items={filteredBoth} showLangBadge />
-        )}
-        {langFilter === "en" && (
-          <SectionBlock items={filteredEnglish} lang="en" qLabel="Q" />
-        )}
-        {langFilter === "ar" && (
-          <SectionBlock items={filteredArabic} lang="ar" qLabel="س" />
-        )}
+{!loading && items.length > 0 && (
+  <div className="flex flex-col items-center gap-3 mb-10">
+    <p className="text-[0.8rem] text-slate-400 m-0">
+      Showing {items.length} of {total}
+    </p>
+    {items.length < total && (
+      <button
+        onClick={() => fetchItems(true)}
+        disabled={loadingMore}
+        className="px-8 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 cursor-pointer transition"
+      >
+        {loadingMore ? "Loading..." : "Load more"}
+      </button>
+    )}
+  </div>
+)}
       </div>
     </AdminLayout>
   );
