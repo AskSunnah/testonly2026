@@ -1,5 +1,5 @@
 // src/Components/Admin/AuthorManagement.jsx
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   updateAuthor,
   fetchAuthorBooks,
@@ -64,7 +64,6 @@ export default function AuthorManagement({
   contentDirectionProps,
   fieldCls,
   labelCls,
-  selectFieldCls,
   allowCreate = true,
 }) {
   const [editingAuthor, setEditingAuthor] = useState(null);
