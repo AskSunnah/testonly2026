@@ -7,6 +7,8 @@ import {
   createAuthor,
 } from "../../api/adminBook";
 
+import AuthorSearchSelect from "./AuthorSearchSelect";
+
 const BLANK_AUTHOR_LIFE = {
   birthYear: null,
   birthYearUnknown: false,
@@ -410,22 +412,13 @@ export default function AuthorManagement({
       <label className={labelCls}>Saved Author:</label>
 
       <div className="flex items-center gap-2">
-        <select
-          {...contentDirectionProps}
-          className={`${selectFieldCls} flex-1`}
-          value={selectedAuthorId || ""}
-          onChange={handleAuthorSelect}
-        >
-          <option value="" disabled>
-            -- Select saved author --
-          </option>
-
-          {authors.map((author) => (
-            <option key={author._id} value={author._id}>
-              {author.name}
-            </option>
-          ))}
-        </select>
+        <AuthorSearchSelect
+          className="flex-1 mb-4"
+          authors={authors}
+          value={selectedAuthorId}
+          contentDirectionProps={contentDirectionProps}
+          onChange={(id) => handleAuthorSelect({ target: { value: id } })}
+        />
 
         {selectedAuthorId && (
           <button
